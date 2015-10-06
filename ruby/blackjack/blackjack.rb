@@ -1,3 +1,4 @@
+require 'pry'
 class Card
   attr_accessor :suite, :name, :value
 
@@ -24,68 +25,104 @@ class Deck
     :king  => 10,
     :ace   => [11, 1]}
 
-  def initialize
-    shuffle
-  end
+    def initialize
+      shuffle
+    end
 
-  def deal_card
-    random = rand(@playable_cards.size)
-    @playable_cards.delete_at(random)
-  end
+    def deal_card
+      random = rand(@playable_cards.size)
+      @playable_cards.delete_at(random)
+    end
 
-  def shuffle
-    @playable_cards = []
-    SUITES.each do |suite|
-      NAME_VALUES.each do |name, value|
-        @playable_cards << Card.new(suite, name, value)
+    def shuffle
+      @playable_cards = []
+      SUITES.each do |suite|
+        NAME_VALUES.each do |name, value|
+          @playable_cards << Card.new(suite, name, value)
+        end
       end
     end
   end
-end
 
-class Hand
-  attr_accessor :cards
+  class Hand
+    attr_accessor :cards
 
-  def initialize
-    @cards = []
-  end
-end
-
-require 'test/unit'
-
-class CardTest < Test::Unit::TestCase
-  def setup
-    @card = Card.new(:hearts, :ten, 10)
-  end
-  
-  def test_card_suite_is_correct
-    assert_equal @card.suite, :hearts
+    def initialize
+      @cards = []
+    end
   end
 
-  def test_card_name_is_correct
-    assert_equal @card.name, :ten
-  end
-  def test_card_value_is_correct
-    assert_equal @card.value, 10
-  end
-end
+  class Player
+    attr_accessor :deck, :hand
 
-class DeckTest < Test::Unit::TestCase
-  def setup
-    @deck = Deck.new
-  end
-  
-  def test_new_deck_has_52_playable_cards
-    assert_equal @deck.playable_cards.size, 52
-  end
-  
-  def test_dealt_card_should_not_be_included_in_playable_cards
-    card = @deck.deal_card
-    assert(@deck.playable_cards.include?(card))
+    def initialize(deck)
+      get_hand
+      @deck = deck
+    end
+
+    def hit
+      hand.cards << deck.deal_card
+    end
+
+    def get_hand
+      @hand ||= Hand.new()
+    end
+
+    def total
+      hand.cards.reduce(0) do |total, card|
+        if card.value.class == Fixnum
+          total += card.value
+        elsif total + 11 > 21
+          total += 1
+        elsif card.value
+          total += 11
+        end
+      end
+    end
+
+    def keep_playing(u_total)
+      while self.total < 21 && self.total < u_total
+        self.hit
+      end
+    end
   end
 
-  def test_shuffled_deck_has_52_playable_cards
-    @deck.shuffle
-    assert_equal @deck.playable_cards.size, 52
+  class Blackjack
+
+    def play
+      deck   = Deck.new
+      user   = Player.new(deck)
+      dealer = Player.new(deck)
+      puts 'Welcome to Blackjack!'
+      answer = 'hit'
+      user.hit
+      dealer.hit
+
+      while user.total <= 21 && dealer.total <= 21 && answer == 'hit'
+        puts "your hand is :"
+        user.hand.cards.each do |h|
+          puts "#{h.name.to_s} of #{h.suite.to_s} with a value of #{h.value.to_s}"
+        end
+        puts "your total is #{user.total}"
+        puts "Would you like to keep this or get another card? Type hit or stay."
+        answer = gets.chomp
+        if answer == 'hit'
+          user.hit
+        else
+          dealer.keep_playing(user.total)
+        end
+        if dealer.total < 21 && dealer.total < user.total
+          dealer.hit
+        end
+      end
+
+      if user.total > 21 || dealer.total > user.total
+        puts "you lose, your total score was #{user.total} and the dealer's score was #{dealer.total}"
+      elsif dealer.total > 21 || user.total > dealer.total
+        puts "you win! The dealer went up to #{dealer.total} and you has #{user.total}"
+      end
+    end
+
   end
-end
+
+  Blackjack.new.play
