@@ -5,6 +5,7 @@
   <script src="http://code.jquery.com/jquery-latest.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+  <script src="backbone.paginator/lib/backbone.paginator.js"></script>
   <script>
   $(document).ready(function() {
     getQuotes()
@@ -15,9 +16,18 @@
 
     });
 
-    var QuoteList = Backbone.Collection.extend({
+    var QuoteList = Backbone.PageableCollection.extend({
       url:'https://gist.githubusercontent.com/anonymous/8f61a8733ed7fa41c4ea/raw/1e90fd2741bb6310582e3822f59927eb535f6c73/quotes.json',
-      model: newModel
+      model: newModel,
+      state: {
+        firstPage: 0,
+        currentPage: 2,
+        totalRecords: 200
+      },
+      queryParams: {
+        currentPage: 1,
+        pageSize: 2
+      }
     });
 
     var QuoteView = Backbone.View.extend({
@@ -33,7 +43,7 @@
       el: $('#main'),
 
       initialize: function() {
-        var quoteList = new QuoteList(),
+        var quoteList = new QuoteList,
         quotes    = $(this.el).find('#quotes'),
         quoteView;
 

@@ -3,15 +3,21 @@
 <html>
 <head>
   <script src="http://code.jquery.com/jquery-latest.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.19.0.js" type="text/css" media="screen" />
+  <script type="text/javascript" src="http://code.jquery.com/qunit/qunit-1.19.0.js"></script>
   <script type="text/javascript" src="tests.js"></script>
   <script>
   $(document).ready(function() {
-    $('.description').hide()
+    $('.description').hide();
+    toggleLink();
+  });
+
+  function toggleLink() {
     $( "a" ).click(function() {
-      $('.description').hide('slow')
+      $('.description').not($(this).closest("div").find('.description')).hide('slow')
       $($(this).closest("div").find('.description')).toggle("slow");
     });
-  });
+  }
   </script>
 </head>
 <body>
