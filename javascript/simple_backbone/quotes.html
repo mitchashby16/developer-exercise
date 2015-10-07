@@ -1,12 +1,71 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-                    "http://www.w3.org/TR/html4/loose.dtd">
+"http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
   <script src="http://code.jquery.com/jquery-latest.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+  <script>
+  $(document).ready(function() {
+    getQuotes()
+  });
+
+  function getQuotes()  {
+    var newModel = Backbone.Model.extend({
+
+    });
+
+    var QuoteList = Backbone.Collection.extend({
+      url:'https://gist.githubusercontent.com/anonymous/8f61a8733ed7fa41c4ea/raw/1e90fd2741bb6310582e3822f59927eb535f6c73/quotes.json',
+      model: newModel
+    });
+
+    var QuoteView = Backbone.View.extend({
+      tagName: 'li',
+
+      render: function() {
+        this.$el.html(this.model.attributes.quote + '<br>-'+ this.model.attributes.source + ' in ' + this.model.attributes.context + '');
+        return this;
+      },
+    });
+
+    var App = Backbone.View.extend({
+      el: $('#main'),
+
+      initialize: function() {
+        var quoteList = new QuoteList(),
+        quotes    = $(this.el).find('#quotes'),
+        quoteView;
+
+        quoteList.fetch({
+          success: function (collection) {
+            collection.each(function (model) {
+              quoteView = new QuoteView({
+                model: model
+              });
+
+              quotes.append(quoteView.render().el);
+            });
+          }
+        });
+      },
+
+      render: function() {
+        return this;
+      }
+    });
+
+
+    new App();
+  };
+  </script>
 </head>
 <body>
-
+  <div id="main">
+    <div id="quotes"></div>
+  </div>
 </body>
 </html>
+<div id="main">
+  <div id="quotes"></div>
+</div>

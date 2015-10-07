@@ -88,41 +88,67 @@ class Deck
   end
 
   class Blackjack
+    attr_accessor :user, :dealer
 
     def play
-      deck   = Deck.new
-      user   = Player.new(deck)
-      dealer = Player.new(deck)
-      puts 'Welcome to Blackjack!'
+      start
       answer = 'hit'
-      user.hit
-      dealer.hit
-
-      while user.total <= 21 && dealer.total <= 21 && answer == 'hit'
-        puts "your hand is :"
-        user.hand.cards.each do |h|
-          puts "#{h.name.to_s} of #{h.suite.to_s} with a value of #{h.value.to_s}"
-        end
-        puts "your total is #{user.total}"
-        puts "Would you like to keep this or get another card? Type hit or stay."
+      while user.total < 21 && dealer.total < 21 && answer == 'hit'
+        user_cards
+        prompt
         answer = gets.chomp
-        if answer == 'hit'
-          user.hit
-        else
-          dealer.keep_playing(user.total)
-        end
-        if dealer.total < 21 && dealer.total < user.total
-          dealer.hit
-        end
+        users_turn(answer)
+        dealers_turn
       end
+      decide
+    end
 
-      if user.total > 21 || dealer.total > user.total
+    def start
+      deck    = Deck.new
+      @user   = Player.new(deck)
+      @dealer = Player.new(deck)
+      puts 'Welcome to Blackjack!'
+      @user.hit
+      @dealer.hit
+    end
+
+    def user_cards
+      puts "your hand is :"
+      user.hand.cards.each do |h|
+        puts "#{h.name.to_s} of #{h.suite.to_s} with a value of #{h.value.to_s}"
+      end
+    end
+
+    def prompt
+      puts "the dealer is showing a #{dealer.hand.cards.first.name.to_s} of #{dealer.hand.cards.first.suite.to_s}
+      with a value of #{dealer.hand.cards.first.value.to_s}"
+      puts "your total is #{user.total}"
+      puts "Would you like to keep this or get another card? Type hit or stay."
+    end
+
+    def decide
+      if user.total > 21 || dealer.total > user.total && dealer.total <= 21
         puts "you lose, your total score was #{user.total} and the dealer's score was #{dealer.total}"
       elsif dealer.total > 21 || user.total > dealer.total
         puts "you win! The dealer went up to #{dealer.total} and you has #{user.total}"
       end
     end
 
+    def dealers_turn
+      if dealer.total < 21 && dealer.total < user.total
+        dealer.hit
+      end
+    end
+
+    def users_turn(answer)
+      if answer == 'hit'
+        user.hit
+      else
+        dealer.keep_playing(user.total)
+      end
+    end
   end
 
-  Blackjack.new.play
+  if __FILE__ == $0
+    Blackjack.new.play
+  end
